@@ -1,0 +1,97 @@
+﻿@page "/juegos/nuevo/venta"
+@page "/juegos/editar/venta{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioVentas _repositorio;
+@inject IRepositorioCategoria _repC;
+
+<h2>@_mensaje venta</h2>
+<EditForm Model="_venta" FormName="formVenta" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_venta.Nombre" />
+            <ValidationMessage For="()=>_venta.Nombre" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtCategoria" class="col-2 col-form-label">Categoría</label>
+        <div class="col-10">
+            <InputSelect id="txtCategoria" class="form-select" @bind-Value="_venta.Categoria">
+                <option value="0" disabled="disabled">Seleccione clasificación...</option>
+                @foreach (Categoria categoria in _categorias)
+                {
+                    <option value="@categoria.Id">@categoria.Nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="()=>_venta.Categoria" />
+        </div>
+        </div>
+    <div class="row mb-3">
+        <label for="txtDescripcion" class="col-2 col-form-label">Descripción</label>
+        <div class="col-10">
+            <InputText id="txtDescripcion" class="form-control" @bind-Value="_venta.Descripcion" />
+            <ValidationMessage For="()=>_venta.Descripcion" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtfv" class="col-2 col-form-label">Fecha de la venta</label>
+        <div class="col-10">
+            <InputDate id="txtfv" class="form-control" @bind-Value="_venta.FechaVenta" />
+            <ValidationMessage For="()=>_venta.FechaVenta" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="txtPrecio" class="col-2 col-form-label">Precio</label>
+        <div class="col-10">
+            <InputDate id="txtPrecio" class="form-control" @bind-Value="_venta.PrecioVenta" />
+            <ValidationMessage For="()=>_venta.PrecioVenta" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Venta _venta = new();
+    private List<Categoria> _categorias = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        _categorias = await _repC.GetAll();
+
+        if (Id > 0)
+        {
+            _venta = await _repositorio.Get(Id);
+            _mensaje = "Modificar";
+        }
+        else
+        {
+            _mensaje = "Nueva";
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorio.Update(Id, _venta!);
+        }
+        else
+        {
+            await _repositorio.Add(_venta!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/juegos");
+    }
+}
